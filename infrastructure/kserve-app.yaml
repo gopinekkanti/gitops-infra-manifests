@@ -1,20 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kubeflow-platform
+  name: ai-model-services
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com'
     targetRevision: HEAD
-    path: infrastructure/manifests/kubeflow
+    path: infrastructure/manifests/ai-models
   destination:
     server: 'https://default.svc'
-    namespace: kubeflow # Deploys directly into the ML platform namespace
+    namespace: kserve-test
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true # Creates kubeflow namespace if missing
