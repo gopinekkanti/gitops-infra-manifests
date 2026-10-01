@@ -1,1 +1,29 @@
-
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: "llama3-7b"
+  namespace: "kserve-test"
+spec:
+  predictor:
+    minReplicas: 0 # Scaled to ZERO when no requests come in (Saves major cloud costs!)
+    maxReplicas: 5
+    tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "ml-training-inference"
+        effect: "NoSchedule"
+    nodeSelector:
+      workload: "ml-training-inference" # Forces pod to land on the Karpenter GPU nodes
+    model:
+      modelFormat:
+        name: vllm
+      resources:
+        limits:
+          cpu: "4"
+          memory: "16Gi"
+          ://nvidia.com: "1" # Demands 1 AWS GPU instance
+        requests:
+          cpu: "2"
+          memory: "8Gi"
+          ://nvidia.com: "1"
+      storageUri: "s3://your-mlops-model-registry/llama3-7b-vllm" # Fetches from S3 MLOps registry
