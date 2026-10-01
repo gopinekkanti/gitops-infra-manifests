@@ -1,1 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 
+# 1. Pull the official base manifests directly from the Kubeflow Upstream GitHub
+resources:
+  # Pins to a stable release version tag to prevent configuration drift
+  - ://github.com 
+
+# 2. Global Transformations
+namespace: kubeflow
+
+commonLabels:
+  maintained-by: platform-engineering
+  deployment-mode: gitops-argo
+
+# 3. Custom Target Patches (Tailoring the Upstream for your AWS/EKS Cluster)
+patches:
+  # Example: Adjusting the Central Dashboard ConfigMap to integrate with your custom UI tools
+  - target:
+      kind: ConfigMap
+      name: centraldashboard-config
+    patch: |-
+      - op: replace
+        path: /data/registration
+        value: "false" # Disables the raw upstream registration flow for secure OIDC auth
+        
+  # Example: Injecting AWS-specific resource constraints onto core pods
+  - target:
+      kind: Deployment
+      name: ml-pipeline-ui
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ml-pipeline-ui
+      spec:
+        template:
+          spec:
+            containers:
+            - name: ml-pipeline-ui
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "1Gi"
+                limits:
+                  cpu: "2"
+                  memory: "4Gi"
