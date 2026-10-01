@@ -1,1 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-platform-eng
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io # Cleans up cloud resources if deleted
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com'
+    targetRevision: HEAD
+    path: infrastructure # Point to the directory containing individual apps
+  destination:
+    server: 'https://default.svc'
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true     # Automatically deletes resources if removed from Git
+      selfHeal: true   # Automatically overwrites drift if someone edits via kubectl
 
